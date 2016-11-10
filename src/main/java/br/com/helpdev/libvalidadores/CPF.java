@@ -8,9 +8,9 @@ import java.util.regex.Pattern;
  * Created by demantoide on 09/11/16.
  */
 
-public class CPFUtils {
+public class CPF {
 
-    public static boolean validaCPF(String cpf) {
+    public static boolean validateCPF(String cpf) {
         if (cpf.contains(".") || cpf.contains("-")) {
             cpf = cpf.replaceAll(Pattern.quote("."), "").replaceAll(Pattern.quote("-"), "");
         }

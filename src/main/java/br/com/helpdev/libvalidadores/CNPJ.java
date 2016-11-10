@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
  * Created by demantoide on 09/11/16.
  */
 
-public class CNPJUtils {
+public class CNPJ {
 
     public static String getCNPJ(boolean formatado) {
 
@@ -59,7 +59,7 @@ public class CNPJUtils {
 
     }
 
-    public static boolean validaCNPJ(String cnpj) {
+    public static boolean validateCNPJ(String cnpj) {
         if (cnpj.contains(".") || cnpj.contains("-") || cnpj.contains("/")) {
             cnpj = cnpj.replaceAll(Pattern.quote("."), "")
                     .replaceAll(Pattern.quote("-"), "")
