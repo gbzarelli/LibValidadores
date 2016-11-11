@@ -1,7 +1,8 @@
 package br.com.helpdev.libvalidadores;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 /**
@@ -11,39 +12,115 @@ import java.util.regex.Pattern;
 public class CreditCard {
 
     public enum EnumCreditCard {
-        INVALID("INVALID"),
-        VISA("Visa"),
-        MASTERCARD("Mastercard"),
-        AMERICAN_EXPRESS("American Express"),
-        EN_ROUTE("En Route"),
-        DINERS_CLUB("Diner's CLub/Carte Blanche");
+        VISA(new String[]{"4539", "4556", "4916", "4532", "4929", "40240071", "4485", "4716", "4"}),
+        MASTERCARD(new String[]{"51", "52", "53", "54", "55"}),
+        AMEX(new String[]{"34", "37"}),
+        DISCOVER(new String[]{"6011"}),
+        DINERS(new String[]{"300", "301", "302", "303", "36", "38"}),
+        ENROUTE(new String[]{"2014", "2149"}),
+        JCB(new String[]{"35"}),
+        VOYAGER(new String[]{"8699"});
 
-        private String nome;
+        String[] prefix;
 
-        EnumCreditCard(String nome) {
-            this.nome = nome;
-        }
-
-        public String getNome() {
-            return nome;
+        EnumCreditCard(String[] prefix) {
+            this.prefix = prefix;
         }
     }
 
-    /**
-     * Valid a Credit Card number
-     */
-    public static EnumCreditCard validateCC(String number) throws Exception {
-        EnumCreditCard cardID = getCardID(number);
-        if (cardID != EnumCreditCard.INVALID && validateCCNumber(number)) {
-            return cardID;
-        }
-        return EnumCreditCard.INVALID;
+
+    public static String generateCreditCardNumber() {
+        return generateCreditCardNumber(16);
     }
 
+    static String generateCreditCardNumber(EnumCreditCard prefix) {
+        return generateCreditCardNumber(prefix, 16);
+    }
+
+
+    public static String generateCreditCardNumber(int maxLength) {
+        int randomArrayIndex = (int) Math.floor(Math.random() * EnumCreditCard.values().length);
+        EnumCreditCard prefix = EnumCreditCard.values()[randomArrayIndex];
+        return generateCreditCardNumber(prefix, maxLength);
+    }
+
+
+    public static String generateCreditCardNumber(EnumCreditCard prefix, int length) {
+        if (prefix == EnumCreditCard.DINERS) {
+            length = 14;
+        }
+        if (prefix == EnumCreditCard.AMEX || prefix == EnumCreditCard.ENROUTE) {
+            length = 15;
+        }
+
+        int randomArrayIndex = (int) Math.floor(Math.random() * prefix.prefix.length);
+        String ccnumber = prefix.prefix[randomArrayIndex];
+        return generateCreditCardNumber(ccnumber, length);
+    }
+
+    static String generateCreditCardNumber(String prefix, int length) {
+        String ccnumber = prefix;
+
+        // generate digits
+        while (ccnumber.length() < (length - 1)) {
+            ccnumber += Double.valueOf(Math.floor(Math.random() * 10)).intValue();
+        }
+
+        // reverse number and convert to int
+
+        String reversedCCnumberString = strrev(ccnumber);
+
+        List<Integer> reversedCCnumberList = new ArrayList<>();
+        for (int i = 0; i < reversedCCnumberString.length(); i++) {
+            reversedCCnumberList.add(Integer.valueOf(String.valueOf(reversedCCnumberString.charAt(i))));
+        }
+
+        // calculate sum
+
+        int sum = 0;
+        int pos = 0;
+
+        Integer[] reversedCCnumber = reversedCCnumberList
+                .toArray(new Integer[reversedCCnumberList.size()]);
+        while (pos < length - 1) {
+
+            int odd = reversedCCnumber[pos] * 2;
+            if (odd > 9) {
+                odd -= 9;
+            }
+
+            sum += odd;
+
+            if (pos != (length - 2)) {
+                sum += reversedCCnumber[pos + 1];
+            }
+            pos += 2;
+        }
+
+        // calculate check digit
+
+        int checkdigit = Double.valueOf(((Math.floor(sum / 10) + 1) * 10 - sum) % 10).intValue();
+        ccnumber += checkdigit;
+
+        return ccnumber;
+    }
+
+    private static boolean isNumber(String n) {
+        try {
+            double d = Double.valueOf(n);
+            return true;
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     public static EnumCreditCard getCardID(String number) {
-        number = number.replaceAll(Pattern.quote("."),"").replaceAll(Pattern.quote("-"),"");
-        EnumCreditCard valid = EnumCreditCard.INVALID;
+        number = number.trim().replaceAll(Pattern.quote("."), "")
+                .replaceAll(Pattern.quote("-"), "")
+                .replaceAll(Pattern.quote("/"), "");
+
+        EnumCreditCard valid = null;
 
         String digit1 = number.substring(0, 1);
         String digit2 = number.substring(0, 2);
@@ -66,19 +143,41 @@ public class CreditCard {
                 if (number.length() == 16)
                     valid = EnumCreditCard.MASTERCARD;
             }
+            /**
+             * JCB(new String[]{"35"}),
+             */
+            else if (digit2.compareTo("35") == 0) {
+                if (number.length() == 16)
+                    valid = EnumCreditCard.JCB;
+            }
+
+            /**
+             *DISCOVER(new String[]{"6011"}),
+             */
+            else if (digit4.compareTo("6011") == 0) {
+                if (number.length() == 16)
+                    valid = EnumCreditCard.DISCOVER;
+            }
+            /**
+             VOYAGER(new String[]{"8699"});
+             */
+            else if (digit4.compareTo("8699") == 0) {
+                if (number.length() == 15 || number.length() == 16)
+                    valid = EnumCreditCard.VOYAGER;
+            }
             /*
              * ----* AMEX prefix=34 or 37* ---- length=15
              */
             else if (digit2.equals("34") || digit2.equals("37")) {
                 if (number.length() == 15)
-                    valid = EnumCreditCard.AMERICAN_EXPRESS;
+                    valid = EnumCreditCard.AMEX;
             }
             /*
              * -----* ENROU prefix=2014 or 2149* ----- length=15
              */
             else if (digit4.equals("2014") || digit4.equals("2149")) {
                 if (number.length() == 15)
-                    valid = EnumCreditCard.EN_ROUTE;
+                    valid = EnumCreditCard.ENROUTE;
             }
             /*
              * -----* DCLUB prefix=300 ... 305 or 36 or 38* ----- length=14
@@ -87,7 +186,7 @@ public class CreditCard {
                     || digit2.equals("38")
                     || (digit3.compareTo("300") >= 0 && digit3.compareTo("305") <= 0)) {
                 if (number.length() == 14)
-                    valid = EnumCreditCard.DINERS_CLUB;
+                    valid = EnumCreditCard.DINERS;
             }
         }
         return valid;
@@ -99,77 +198,51 @@ public class CreditCard {
 
     }
 
-    private static boolean isNumber(String n) {
-        try {
-            Double.valueOf(n);
-            return true;
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-            return false;
+    private static String strrev(String str) {
+        if (str == null)
+            return "";
+        String revstr = "";
+        for (int i = str.length() - 1; i >= 0; i--) {
+            revstr += str.charAt(i);
         }
+
+        return revstr;
     }
 
-    /**
-     * @param number
-     * @return
-     */
-    public static boolean validateCCNumber(String number) {
-        number = number.replaceAll(Pattern.quote("."),"").replaceAll(Pattern.quote("-"),"");
+
+    public static boolean isValidCreditCardNumber(String number) {
+        number = number.trim().replaceAll(Pattern.quote("."), "")
+                .replaceAll(Pattern.quote("-"), "")
+                .replaceAll(Pattern.quote("/"), "");
+
+        boolean isValid = false;
+
         try {
-            /*
-             * * known as the LUHN Formula (mod10)
-             */
-            int j = number.length();
-
-            String[] s1 = new String[j];
-            for (int i = 0; i < number.length(); i++)
-                s1[i] = "" + number.charAt(i);
-
-            int checksum = 0;
-
-            for (int i = s1.length - 1; i >= 0; i -= 2) {
-                int k = 0;
-
-                if (i > 0) {
-                    k = Integer.valueOf(s1[i - 1]) * 2;
-                    if (k > 9) {
-                        String s = "" + k;
-                        k = Integer.valueOf(s.substring(0, 1))
-                                + Integer.valueOf(s.substring(1));
+            String reversedNumber = new StringBuffer(number)
+                    .reverse().toString();
+            int mod10Count = 0;
+            for (int i = 0; i < reversedNumber.length(); i++) {
+                int augend = Integer.parseInt(String.valueOf(reversedNumber
+                        .charAt(i)));
+                if (((i + 1) % 2) == 0) {
+                    String productString = String.valueOf(augend * 2);
+                    augend = 0;
+                    for (int j = 0; j < productString.length(); j++) {
+                        augend += Integer.parseInt(String.valueOf(productString
+                                .charAt(j)));
                     }
-                    checksum += Integer.valueOf(s1[i]) + k;
-                } else
-                    checksum += Integer.valueOf(s1[0]);
+                }
+
+                mod10Count += augend;
             }
-            return ((checksum % 10) == 0);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+
+            if ((mod10Count % 10) == 0) {
+                isValid = true;
+            }
+        } catch (NumberFormatException e) {
         }
+
+        return isValid;
     }
 
-    /*
-     * * For testing purpose** java CCUtils [credit card number] or java CCUtils
-     * *
-     */
-    public static void main(String args[]) throws Exception {
-        String aCard = "";
-
-        if (args.length > 0) {
-            aCard = args[0];
-        } else {
-            BufferedReader input = new BufferedReader(new InputStreamReader(
-                    System.in));
-            System.out.print("Card number : ");
-            aCard = input.readLine();
-        }
-        if (getCardID(aCard) != EnumCreditCard.INVALID) {
-            System.out.println("This card is supported.");
-            System.out.println("This a " + getCardID(aCard).getNome());
-            System.out.println("The card number " + aCard + " is "
-                    + (validateCCNumber(aCard) ? " good." : " bad."));
-        } else {
-            System.out.println("This card is invalid or unsupported!");
-        }
-    }
 }

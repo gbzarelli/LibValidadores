@@ -11,9 +11,7 @@ import java.util.regex.Pattern;
 public class CPF {
 
     public static boolean validateCPF(String cpf) {
-        if (cpf.contains(".") || cpf.contains("-")) {
-            cpf = cpf.replaceAll(Pattern.quote("."), "").replaceAll(Pattern.quote("-"), "");
-        }
+        cpf = cpf.replaceAll(Pattern.quote("."), "").replaceAll(Pattern.quote("-"), "");
 
         int i, j, k;
         int soma;

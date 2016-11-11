@@ -1,6 +1,7 @@
 package br.com.helpdev.libvalidadores;
 
 import java.util.Random;
+import java.util.regex.Pattern;
 
 /**
  * Creditos: https://victorjabur.com/2010/05/28/renavam_veiculos_java/
@@ -10,6 +11,11 @@ import java.util.Random;
 public class RENAVAM {
 
     public static boolean validateRENAVAM(String renavam) {
+
+        renavam = renavam.trim().replaceAll(Pattern.quote("."), "")
+                .replaceAll(Pattern.quote("-"), "")
+                .replaceAll(Pattern.quote("/"), "");
+
         // Pegando como exemplo o renavam = 639884962
 
         // Completa com zeros a esquerda se for no padrao antigo de 9 digitos

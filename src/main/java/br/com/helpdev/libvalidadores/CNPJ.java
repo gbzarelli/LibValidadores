@@ -60,11 +60,9 @@ public class CNPJ {
     }
 
     public static boolean validateCNPJ(String cnpj) {
-        if (cnpj.contains(".") || cnpj.contains("-") || cnpj.contains("/")) {
-            cnpj = cnpj.replaceAll(Pattern.quote("."), "")
-                    .replaceAll(Pattern.quote("-"), "")
-                    .replaceAll(Pattern.quote("/"), "");
-        }
+        cnpj = cnpj.replaceAll(Pattern.quote("."), "")
+                .replaceAll(Pattern.quote("-"), "")
+                .replaceAll(Pattern.quote("/"), "");
 
 
         if (cnpj.length() != 14 || cnpj.matches("^(\\d)\\1*$")) {
@@ -92,7 +90,7 @@ public class CNPJ {
         dig = 11 - (soma % 11);
         cnpj_calc += (dig == 10 || dig == 11) ?
                 "0" : Integer.toString(dig);  
-	
+
 	   /* Segunda parte */
         soma = 0;
         for (int i = 0; i < 5; i++) {

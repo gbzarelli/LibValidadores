@@ -1,12 +1,46 @@
 package br.com.helpdev.libvalidadores;
 
 import java.util.Random;
+import java.util.regex.Pattern;
 
 /**
  * Created by demantoide on 10/11/16.
  */
 
 public class PIS {
+
+    public static boolean validatePIS(String valor) {
+        valor = valor.trim().replaceAll(Pattern.quote("."), "")
+                .replaceAll(Pattern.quote("-"), "")
+                .replaceAll(Pattern.quote("/"), "");
+
+        int liTamanho = 0;
+        StringBuffer lsAux = null;
+        StringBuffer lsMultiplicador = new StringBuffer("3298765432");
+        int liTotalizador = 0;
+        int liResto = 0;
+        int liMultiplicando = 0;
+        int liMultiplicador = 0;
+        boolean lbRetorno = true;
+        int liDigito = 99;
+        lsAux = new StringBuffer().append(valor);
+        liTamanho = lsAux.length();
+        if (liTamanho != 11) {
+            lbRetorno = false;
+        }
+        if (lbRetorno) {
+            for (int i = 0; i < 10; i++) {
+                liMultiplicando = Integer.parseInt(lsAux.substring(i, i + 1));
+                liMultiplicador = Integer.parseInt(lsMultiplicador.substring(i, i + 1));
+                liTotalizador += liMultiplicando * liMultiplicador;
+            }
+            liResto = 11 - liTotalizador % 11;
+            liResto = liResto == 10 || liResto == 11 ? 0 : liResto;
+            liDigito = Integer.parseInt("" + lsAux.charAt(10));
+            lbRetorno = liResto == liDigito;
+        }
+        return lbRetorno;
+    }
 
     public static String getPIS(boolean formatado) {
         Random r = new Random();
